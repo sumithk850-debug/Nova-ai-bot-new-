@@ -16,8 +16,8 @@ except Exception as e:
     st.error(f"Config Error: {e}")
     st.stop()
 
-# Using the latest Gemini 2.0 Flash model
-model = genai.GenerativeModel('gemini-2.0-flash')
+# Using the most stable model name to avoid 404 errors
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 st.title("🤖 Nova AI")
 st.caption("Developed by: Hasith")
@@ -39,10 +39,10 @@ if prompt := st.chat_input("Message Nova..."):
 
     with st.chat_message("assistant"):
         try:
-            # Getting response from Gemini 2.0 Flash
+            # Getting response from Gemini
             response = model.generate_content(prompt)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
             st.error(f"Error: {e}")
-            st.info("Check your API Key or Reboot the app.")
+            st.info("Try to Reboot the app from the Manage App menu.")
