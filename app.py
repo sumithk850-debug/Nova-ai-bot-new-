@@ -1,16 +1,15 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Page Configuration
+# Page Setup
 st.set_page_config(page_title="Nova AI", page_icon="🤖")
 
 # API Configuration
 if "GEMINI_API_KEY" in st.secrets:
-    # Trimming any accidental spaces from the key
     api_key = st.secrets["GEMINI_API_KEY"].strip()
     genai.configure(api_key=api_key)
 else:
-    st.error("API Key not found in Secrets.")
+    st.error("API Key missing in Secrets.")
     st.stop()
 
 # Initialize Model
@@ -23,7 +22,7 @@ st.caption("Developed by: Hasith")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display Messages
+# Display Chat History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
