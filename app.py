@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Page Setup
+# Page Configuration
 st.set_page_config(page_title="Nova AI", page_icon="🤖")
 
 # API Configuration
@@ -12,8 +12,8 @@ else:
     st.error("API Key missing in Secrets.")
     st.stop()
 
-# Initialize Model
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Using 'gemini-pro' which is highly stable for v1beta API
+model = genai.GenerativeModel('gemini-pro')
 
 st.title("🤖 Nova AI")
 st.caption("Developed by: Hasith")
@@ -35,8 +35,10 @@ if prompt := st.chat_input("Message Nova..."):
 
     with st.chat_message("assistant"):
         try:
+            # Generate response
             response = model.generate_content(prompt)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
             st.error(f"Error: {e}")
+            st.info("If you see a 404 error again, please wait 5 minutes and Reboot.")
