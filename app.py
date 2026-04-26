@@ -2,55 +2,44 @@ import streamlit as st
 from gradio_client import Client
 import os
 
-# Page Configuration
 st.set_page_config(page_title="Alpha AI 3D World Gen", page_icon="🌌")
-
 st.title("🌌 Alpha AI: HY-World 2.0 Tester")
-st.subheader("Generate 3D Worlds using ZeroGPU Tech")
 
-# Space URL (ඔබ දුන්න ලින්ක් එක)
 SPACE_URL = "https://prithivmlmods-hy-world-2-0-demo.hf.space"
 
-# Sidebar for settings
-st.sidebar.header("Settings")
-status_placeholder = st.sidebar.empty()
-
-# Prompt Input
-user_prompt = st.text_input("Enter your World Description:", placeholder="A futuristic Cybertron city with glowing lights...")
+user_prompt = st.text_input("Enter your World Description:")
 
 if st.button("Generate 3D World"):
     if user_prompt:
         try:
-            status_placeholder.warning("⏳ ZeroGPU සක්‍රිය වෙමින් පවතී... (විනාඩියක් පමණ යයි)")
-            
-            # Gradio Client සම්බන්ධ කිරීම
+            st.info("⏳ ZeroGPU සක්‍රියයි... (විනාඩියක් පමණ ඉවසන්න)")
             client = Client(SPACE_URL)
             
-            # API එකට පණිවිඩය යැවීම
-            # සටහන: බොහෝ ZeroGPU Space වල ප්‍රධාන API එක /predict වේ
+            # මෙන්න මෙතන මම වෙනසක් කළා: api_name="/predict" වෙනුවට 
+            # කෙලින්ම index එක පාවිච්චි කරනවා.
+            # HY-World 2.0 සඳහා බොහෝ විට මෙය පරාමිතීන් කිහිපයක් ගනී.
+            # [prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps]
+            
             result = client.predict(
-                prompt=user_prompt,
-                api_name="/predict"
+                user_prompt,	# Prompt
+                0,              # Seed
+                True,           # Randomize Seed
+                1024,           # Width
+                1024,           # Height
+                6,              # Guidance Scale
+                20,             # Steps
+                api_name="/infer" # HY-World 2.0 හි නම බොහෝ විට /infer වේ
             )
             
             if result:
-                status_placeholder.success("✅ සාර්ථකව නිම කළා!")
-                st.write("### Generated Result:")
-                
-                # ලැබෙන ප්‍රතිඵලය පෙන්වීම (වීඩියෝ එකක් හෝ පින්තූරයක් නම්)
-                if isinstance(result, str) and (result.endswith('.mp4') or result.endswith('.webm')):
-                    st.video(result)
-                elif isinstance(result, str) and (result.endswith('.jpg') or result.endswith('.png')):
-                    st.image(result)
+                st.success("✅ වැඩේ හරි!")
+                # HY-World 2.0 වීඩියෝවක් ලබා දෙන්නේ නම්:
+                if isinstance(result, tuple):
+                    st.video(result[0])
                 else:
-                    st.write(f"Download Result: [Click Here]({result})")
-                    st.info("සටහන: මෙය Gaussian Splatting (.ply) ගොනුවක් නම්, එය බ්ලෙන්ඩර් එකේදී විවෘත කරන්න.")
+                    st.write(f"Result: {result}")
                     
         except Exception as e:
             st.error(f"Error: {str(e)}")
-            status_placeholder.error("❌ Connection Failed")
     else:
         st.warning("කරුණාකර ප්‍රොම්ප්ට් එකක් ඇතුළත් කරන්න.")
-
-st.markdown("---")
-st.caption("Powered by Alpha AI & ZeroGPU Technology")
