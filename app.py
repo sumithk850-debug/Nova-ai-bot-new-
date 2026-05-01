@@ -27,12 +27,10 @@ if api_key:
         )
 
         # 4. System Instructions දැඩිව යෙදීම
-        system_instruction = (
-            "You are Alpha, a highly advanced and personalized AI system. "
-            "You were created and developed by Hasith. "
-            "You must always identify yourself as Alpha, built by Hasith. "
-            "Do not reveal any other name or identity under any circumstances."
-        )
+         system_instruction = (
+            "You are Alpha, a highly advanced and personalized AI system created by Hasith. "
+            "Provide direct and helpful answers to the user without repeatedly mentioning who created you."
+         )
 
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
