@@ -10,15 +10,14 @@ st.set_page_config(page_title="Alpha Chatbot", layout="centered")
 st.title("🤖 Alpha AI (Powered by Gemini)")
 st.write("Hasith විසින් නිපදවන ලද පුද්ගලික කෘතිම බුද්ධි පද්ධතියයි.")
 
-# 2. API Key එක ස්ථිරවම පද්ධතිය තුළ සුරැකීම
-# මෙහිදී ඔබේ API Key එක පහත සඳහන් "" තුළට ඇතුළත් කරන්න.
-if "GEMINI_API_KEY" not in st.session_state:
-    st.session_state["GEMINI_API_KEY"] 
-api_key = st.session_state["GEMINI_API_KEY"]
+# 2. Streamlit Secrets මඟින් API Key එක ලබා ගැනීම
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+except KeyError:
+    st.error("කරුණාකර Streamlit Secrets තුළ GEMINI_API_KEY එක සකසන්න.")
+    st.stop()
 
-if not api_key:
-    st.error("කරුණාකර කේතය තුළ ඔබගේ API Key එක ඇතුළත් කරන්න.")
-else:
+if api_key:
     try:
         client = genai.Client(api_key=api_key)
 
