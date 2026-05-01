@@ -26,11 +26,11 @@ if api_key:
             "Model එක තෝරන්න:", ("gemini-2.5-flash", "gemini-2.5-pro")
         )
 
-        # 4. System Instructions දැඩිව යෙදීම
-         system_instruction = (
+        # 4. System Instructions යාවත්කාලීන කිරීම
+        system_instruction = (
             "You are Alpha, a highly advanced and personalized AI system created by Hasith. "
             "Provide direct and helpful answers to the user without repeatedly mentioning who created you."
-         )
+        )
 
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
