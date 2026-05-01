@@ -3,7 +3,7 @@ import streamlit as st
 from google import genai
 
 # 1. Page Title සහ Configuration
-st.set_page_config(page_title="Gemini 1.5 Chatbot", layout="centered")
+st.set_page_config(page_title="Gemini 2.5 Chatbot", layout="centered")
 
 st.title("🤖 Gemini 1.5 Pro/Flash Chatbot")
 st.write("Google AI Studio හි නිල Gemini API භාවිතයෙන් ක්‍රියාත්මක වේ.")
@@ -21,7 +21,7 @@ with st.sidebar:
 
 # 3. Model තේරීමේ කොටස (Sidebar එකේ)
 model_choice = st.sidebar.selectbox(
-    "Model එක තෝරන්න:", ("gemini-1.5-flash", "gemini-1.5-pro")
+    "Model එක තෝරන්න:", ("gemini-2.5-flash", "gemini-2.5-pro")
 )
 
 # 4. API Key එක ඇති විට ක්‍රියාත්මක වීම
