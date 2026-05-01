@@ -13,8 +13,7 @@ st.write("Hasith විසින් නිපදවන ලද පුද්ගල
 # 2. API Key එක ස්ථිරවම පද්ධතිය තුළ සුරැකීම
 # මෙහිදී ඔබේ API Key එක පහත සඳහන් "" තුළට ඇතුළත් කරන්න.
 if "GEMINI_API_KEY" not in st.session_state:
-    st.session_state["GEMINI_API_KEY"] = "AIzaSy..."  # මෙතැනට ඔබගේ API Key එක ඇතුළත් කරන්න
-
+    st.session_state["GEMINI_API_KEY"] 
 api_key = st.session_state["GEMINI_API_KEY"]
 
 if not api_key:
