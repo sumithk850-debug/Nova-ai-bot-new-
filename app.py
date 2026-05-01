@@ -1,43 +1,80 @@
+import os
 import streamlit as st
-from gradio_client import Client
+from openai import OpenAI
 
-st.set_page_config(page_title="Alpha AI - HY-World", page_icon="🌌")
-st.title("🌌 Alpha AI: HY-World 2.0 Tester")
+# 1. Page Title සහ Configuration
+st.set_page_config(page_title="Cerebras GPT-OSS 120B Chatbot", layout="centered")
 
-# API URL
-SPACE_URL = "https://prithivmlmods-hy-world-2-0-demo.hf.space"
+st.title("🤖 Cerebras GPT-OSS 120B Chatbot")
+st.write("Cerebras Inference API භාවිතයෙන් ක්‍රියාත්මක වන ප්‍රබල AI ආකෘතියකි.")
 
-user_prompt = st.text_input("Enter your World Description:", value="A cybertronian base")
+# 2. API Key ඇතුළත් කිරීමේ කොටස (Sidebar එකේ)
+with st.sidebar:
+    st.header("සැකසුම්")
+    api_key = st.text_input(
+        "Cerebras API Key එක ඇතුළත් කරන්න:", type="password"
+    )
+    st.markdown(
+        "[API Key එකක් නොමිලේ ලබා ගන්න](https://inference.cerebras.ai/)",
+        unsafe_allow_html=True,
+    )
 
-if st.button("Generate"):
-    if user_prompt:
-        try:
-            st.info("⏳ ZeroGPU සක්‍රිය වෙමින් පවතී... විනාඩියක් පමණ රැඳී සිටින්න.")
-            client = Client(SPACE_URL)
-            
-            # HY-World 2.0 හි පරාමිතීන් ටික ලැයිස්තුවක් ලෙස යැවිය යුතුය.
-            # පයිතන් වල මෙය [ ] වරහන් ඇතුළත දැමිය යුතුයි.
-            
-            result = client.predict(
-                [user_prompt],  # ප්‍රොම්ප්ට් එක ලිස්ට් එකක් ලෙස (List of Strings)
-                0,              # Seed
-                True,           # Randomize seed
-                1024,           # Width
-                1024,           # Height
-                6,              # Guidance scale
-                20,             # Number of inference steps
-                fn_index=0      
+# 3. OpenAI Client එක සකස් කිරීම
+if api_key:
+    try:
+        client = OpenAI(
+            base_url="https://api.cerebras.ai/v1",
+            api_key=api_key,
+        )
+
+        # 4. Chat History (ඉතිහාසය) මතකයේ තබා ගැනීම
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # 5. පැරණි පණිවිඩ තිරයේ පෙන්වීම
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # 6. පරිශීලකයාගෙන් ප්‍රශ්න විමසීම
+        if prompt := st.chat_input("ඔබට දැනගැනීමට අවශ්‍ය දේ මෙහි ලියන්න..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # 7. ප්‍රතිචාර ජනනය කිරීම
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
+                full_response = ""
+
+                try:
+                    completion = client.chat.completions.create(
+                        model="gpt-oss-120b",  # Model එක මෙහි සඳහන් වේ
+                        messages=[
+                            {"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.messages
+                        ],
+                        temperature=0.7,
+                    )
+
+                    full_response = completion.choices[
+                        0
+                    ].message.content
+                    message_placeholder.markdown(full_response)
+
+                except Exception as e:
+                    full_response = f"දෝෂයක් ඇතිවිය: {e}"
+                    message_placeholder.error(full_response)
+
+            st.session_state.messages.append(
+                {"role": "assistant", "content": full_response}
             )
-            
-            if result:
-                st.success("✅ සාර්ථකයි!")
-                # HY-World සාමාන්‍යයෙන් වීඩියෝවක path එකක් හෝ gallery එකක් ලබා දෙයි.
-                if isinstance(result, (list, tuple)):
-                    st.video(result[0])
-                else:
-                    st.video(result)
-                    
-        except Exception as e:
-            st.error(f"❌ API Error: {str(e)}")
-    else:
-        st.warning("ප්‍රොම්ප්ට් එකක් ඇතුළත් කරන්න.")
+
+    except Exception as e:
+        st.error(
+            "කරුණාකර නිවැරදි Cerebras API Key එකක් ඇතුළත් කරන්න."
+        )
+else:
+    st.info(
+        "කරුණාකර ඔබගේ Cerebras API Key එක වම් පස ඇති Sidebar එකෙහි ඇතුළත් කරන්න."
+    )
