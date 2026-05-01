@@ -1,80 +1,98 @@
 import os
 import streamlit as st
-from openai import OpenAI
+from google import genai
 
 # 1. Page Title සහ Configuration
-st.set_page_config(page_title="Cerebras GPT-OSS 120B Chatbot", layout="centered")
+st.set_page_config(page_title="Gemini 1.5 Chatbot", layout="centered")
 
-st.title("🤖 Cerebras GPT-OSS 120B Chatbot")
-st.write("Cerebras Inference API භාවිතයෙන් ක්‍රියාත්මක වන ප්‍රබල AI ආකෘතියකි.")
+st.title("🤖 Gemini 1.5 Pro/Flash Chatbot")
+st.write("Google AI Studio හි නිල Gemini API භාවිතයෙන් ක්‍රියාත්මක වේ.")
 
 # 2. API Key ඇතුළත් කිරීමේ කොටස (Sidebar එකේ)
 with st.sidebar:
     st.header("සැකසුම්")
     api_key = st.text_input(
-        "Cerebras API Key එක ඇතුළත් කරන්න:", type="password"
+        "Google AI Studio API Key එක ඇතුළත් කරන්න:", type="password"
     )
     st.markdown(
-        "[API Key එකක් නොමිලේ ලබා ගන්න](https://inference.cerebras.ai/)",
+        "[API Key එකක් නොමිලේ ලබා ගන්න](https://aistudio.google.com/)",
         unsafe_allow_html=True,
     )
 
-# 3. OpenAI Client එක සකස් කිරීම
+# 3. Model තේරීමේ කොටස (Sidebar එකේ)
+model_choice = st.sidebar.selectbox(
+    "Model එක තෝරන්න:", ("gemini-1.5-flash", "gemini-1.5-pro")
+)
+
+# 4. API Key එක ඇති විට ක්‍රියාත්මක වීම
 if api_key:
     try:
-        client = OpenAI(
-            base_url="https://api.cerebras.ai/v1",
-            api_key=api_key,
-        )
+        # නවතම google-genai client එක සකස් කිරීම
+        client = genai.Client(api_key=api_key)
 
-        # 4. Chat History (ඉතිහාසය) මතකයේ තබා ගැනීම
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+        # 5. Chat History මතකයේ තබා ගැනීම
+        if "gemini_messages" not in st.session_state:
+            st.session_state.gemini_messages = []
 
-        # 5. පැරණි පණිවිඩ තිරයේ පෙන්වීම
-        for message in st.session_state.messages:
+        # 6. පැරණි පණිවිඩ තිරයේ පෙන්වීම
+        for message in st.session_state.gemini_messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        # 6. පරිශීලකයාගෙන් ප්‍රශ්න විමසීම
+        # 7. පරිශීලකයාගෙන් ප්‍රශ්න විමසීම
         if prompt := st.chat_input("ඔබට දැනගැනීමට අවශ්‍ය දේ මෙහි ලියන්න..."):
-            st.session_state.messages.append({"role": "user", "content": prompt})
+            # පරිශීලකයාගේ පණිවිඩය එකතු කිරීම
+            st.session_state.gemini_messages.append(
+                {"role": "user", "content": prompt}
+            )
             with st.chat_message("user"):
                 st.markdown(prompt)
 
-            # 7. ප්‍රතිචාර ජනනය කිරීම
+            # 8. ප්‍රතිචාර ජනනය කිරීම
             with st.chat_message("assistant"):
                 message_placeholder = st.empty()
                 full_response = ""
 
                 try:
-                    completion = client.chat.completions.create(
-                        model="gpt-oss-120b",  # Model එක මෙහි සඳහන් වේ
-                        messages=[
-                            {"role": m["role"], "content": m["content"]}
-                            for m in st.session_state.messages
-                        ],
-                        temperature=0.7,
+                    # සංවාදයේ පැරණි පණිවිඩ API එකට යැවීමට ගැලපීම
+                    formatted_contents = []
+                    for m in st.session_state.gemini_messages:
+                        # gemini api එකට user/model ලෙස role අවශ්‍ය වේ
+                        role = (
+                            "user" if m["role"] == "user" else "model"
+                        )
+                        formatted_contents.append(
+                            {
+                                "role": role,
+                                "parts": [{"text": m["content"]}],
+                            }
+                        )
+
+                    # API ඉල්ලීම යැවීම
+                    response = client.chats.create(
+                        model=model_choice,
+                        history=formatted_contents[:-1],  # ඉතිහාසය
                     )
 
-                    full_response = completion.choices[
-                        0
-                    ].message.content
+                    # නවතම පණිවිඩයට පිළිතුර ලබා ගැනීම
+                    result = response.send_message(prompt)
+                    full_response = result.text
                     message_placeholder.markdown(full_response)
 
                 except Exception as e:
                     full_response = f"දෝෂයක් ඇතිවිය: {e}"
                     message_placeholder.error(full_response)
 
-            st.session_state.messages.append(
+            # සහායකයාගේ පණිවිඩය එකතු කිරීම
+            st.session_state.gemini_messages.append(
                 {"role": "assistant", "content": full_response}
             )
 
     except Exception as e:
         st.error(
-            "කරුණාකර නිවැරදි Cerebras API Key එකක් ඇතුළත් කරන්න."
+            "කරුණාකර වලංගු Google API Key එකක් ඇතුළත් කරන්න."
         )
 else:
     st.info(
-        "කරුණාකර ඔබගේ Cerebras API Key එක වම් පස ඇති Sidebar එකෙහි ඇතුළත් කරන්න."
+        "කරුණාකර ඔබගේ Google API Key එක වම් පස ඇති Sidebar එකෙහි ඇතුළත් කරන්න."
     )
